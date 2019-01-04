@@ -14,7 +14,7 @@ use Propel\Runtime\Exception\InvalidArgumentException;
 use Propel\Runtime\DataFetcher\PDODataFetcher;
 
 /**
- * PDO extension that implements ConnectionInterface and builds statements implementing StatementInterface.
+ * PDO extension that implements ConnectionInterface and builds \PDOStatement statements.
  */
 class PdoConnection extends \PDO implements ConnectionInterface
 {
@@ -46,9 +46,18 @@ class PdoConnection extends \PDO implements ConnectionInterface
      */
     public function __construct($dsn, $user = null, $password = null, array $options = null)
     {
-        parent::__construct($dsn, $user, $password, $options);
 
-        $this->setAttribute(\PDO::ATTR_STATEMENT_CLASS, ['\Propel\Runtime\Adapter\Pdo\PdoStatement', []]);
+        // Convert option keys from a string to a \PDO:: constant
+        $pdoOptions = [];
+        if (is_array($options)) {
+            foreach ($options as $key => $option) {
+                $index = (is_numeric($key)) ? $key : constant('self::' . $key);
+                $pdoOptions[$index] = $option;
+            }
+        }
+
+        parent::__construct($dsn, $user, $password, $pdoOptions);
+
         $this->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
@@ -136,7 +145,7 @@ class PdoConnection extends \PDO implements ConnectionInterface
      *
      * @param  string                                     $statement
      * @param  array                                      $driver_options
-     * @return bool|\PDOStatement|StatementInterface|void
+     * @return bool|\PDOStatement|void
      */
     public function prepare($statement, $driver_options = null)
     {

@@ -366,6 +366,17 @@ DROP TABLE IF EXISTS " . $this->quoteIdentifier($table->getName()) . ";
             $ddl[] = $sqlType;
         }
         $colinfo = $col->getVendorInfoForType($this->getDatabaseType());
+        if ($colinfo->hasParameter('Unsigned')) {
+            $unsigned = $colinfo->getParameter('Unsigned');
+            switch (strtoupper($unsigned)) {
+                case 'FALSE': break;
+                case 'TRUE':
+                    $ddl[] = 'UNSIGNED';
+                    break;
+                default:
+                    throw new EngineException('Unexpected value "'.$unsigned.'" for MySQL vendor column parameter "Unsigned", expecting "true" or "false".');
+            }
+        }
         if ($colinfo->hasParameter('Charset')) {
             $ddl[] = 'CHARACTER SET '. $this->quote($colinfo->getParameter('Charset'));
         }
@@ -789,11 +800,6 @@ ALTER TABLE %s ADD %s %s;
     public function doQuoting($text)
     {
         return '`' . strtr($text, ['.' => '`.`']) . '`';
-    }
-
-    public function getTimestampFormatter()
-    {
-        return 'Y-m-d H:i:s';
     }
 
     public function getColumnBindingPHP(Column $column, $identifier, $columnValueAccessor, $tab = "            ")

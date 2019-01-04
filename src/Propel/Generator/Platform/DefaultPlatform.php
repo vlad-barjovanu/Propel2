@@ -1283,7 +1283,7 @@ ALTER TABLE %s ADD
      */
     public function getTimestampFormatter()
     {
-        return 'Y-m-d H:i:s';
+        return 'Y-m-d H:i:s.u';
     }
 
     /**
@@ -1292,7 +1292,7 @@ ALTER TABLE %s ADD
      */
     public function getTimeFormatter()
     {
-        return 'H:i:s';
+        return 'H:i:s.u';
     }
 
     /**
@@ -1352,8 +1352,8 @@ if (is_resource($columnValueAccessor)) {
             $tab,
             $columnValueMutator,
             $connectionVariableName,
-            $sequenceName ? ("'" . $sequenceName . "'") : '',
-            $phpType ? '('.$phpType.') ' : ''
+            $phpType ? '('.$phpType.') ' : '',
+            $sequenceName ? ("'" . $sequenceName . "'") : ''
         );
     }
 

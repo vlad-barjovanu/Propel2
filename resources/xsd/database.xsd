@@ -294,7 +294,8 @@
 
     <xs:complexType name="reference">
         <xs:attribute name="local" type="column_name" use="required"/>
-        <xs:attribute name="foreign" type="column_name" use="required"/>
+        <xs:attribute name="foreign" type="column_name" use="optional"/>
+        <xs:attribute name="value" type="xs:string" use="optional"/>
     </xs:complexType>
 
     <xs:complexType name="behavior">
@@ -538,6 +539,13 @@
             <xs:annotation>
                 <xs:documentation xml:lang="en">
                     The (absolute or relative to this schema dir name) path to the external schema file.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="referenceOnly" type="xs:boolean" default="true" use="optional">
+            <xs:annotation>
+                <xs:documentation xml:lang="en">
+                    If set to true, instructs Propel to take the tables from the external schema into account in SQL.
                 </xs:documentation>
             </xs:annotation>
         </xs:attribute>

@@ -551,7 +551,7 @@ class QueryBuilderTest extends BookstoreTestBase
         $q1 = BookQuery::create()->add(BookTableMap::COL_TITLE, ['foo', 'bar'], Criteria::NOT_IN);
         $this->assertEquals($q1, $q, 'filterByStringColumn() accepts a comparison when passed an array');
 
-        $q = BookQuery::create()->filterByTitle('foo%');
+        $q = BookQuery::create()->filterByTitle('foo%', Criteria::LIKE);
         $q1 = BookQuery::create()->add(BookTableMap::COL_TITLE, 'foo%', Criteria::LIKE);
         $this->assertEquals($q1, $q, 'filterByStringColumn() translates to a Criteria::LIKE when passed a string with a % wildcard');
 
@@ -562,14 +562,6 @@ class QueryBuilderTest extends BookstoreTestBase
         $q = BookQuery::create()->filterByTitle('foo%', Criteria::EQUAL);
         $q1 = BookQuery::create()->add(BookTableMap::COL_TITLE, 'foo%', Criteria::EQUAL);
         $this->assertEquals($q1, $q, 'filterByStringColumn() accepts a comparison when passed a string with a % wildcard');
-
-        $q = BookQuery::create()->filterByTitle('*foo');
-        $q1 = BookQuery::create()->add(BookTableMap::COL_TITLE, '%foo', Criteria::LIKE);
-        $this->assertEquals($q1, $q, 'filterByStringColumn() translates to a Criteria::LIKE when passed a string with a * wildcard, and turns * into %');
-
-        $q = BookQuery::create()->filterByTitle('*f%o*o%');
-        $q1 = BookQuery::create()->add(BookTableMap::COL_TITLE, '%f%o%o%', Criteria::LIKE);
-        $this->assertEquals($q1, $q, 'filterByStringColumn() translates to a Criteria::LIKE when passed a string with mixed wildcards, and turns *s into %s');
     }
 
     public function testFilterByBoolean()
@@ -735,8 +727,7 @@ class QueryBuilderTest extends BookstoreTestBase
         BookstoreDataPopulator::populate();
 
         $testLabel = RecordLabelQuery::create()
-            ->limit(2)
-            ->find($this->con);
+            ->findOne($this->con);
 
         $testRelease = ReleasePoolQuery::create()
             ->addJoin(ReleasePoolTableMap::COL_RECORD_LABEL_ID, RecordLabelTableMap::COL_ID)
@@ -746,12 +737,34 @@ class QueryBuilderTest extends BookstoreTestBase
 
         $releasePool = ReleasePoolQuery::create()
             ->addJoin(ReleasePoolTableMap::COL_RECORD_LABEL_ID, RecordLabelTableMap::COL_ID)
-            ->add(ReleasePoolTableMap::COL_RECORD_LABEL_ID, $testLabel->toKeyValue('Id', 'Id'), Criteria::IN)
+            ->add(ReleasePoolTableMap::COL_RECORD_LABEL_ID, $testLabel->getId(), Criteria::EQUAL)
+            ->add(ReleasePoolTableMap::COL_RECORD_LABEL_ABBR, $testLabel->getAbbr(), Criteria::EQUAL)
             ->find($this->con);
         $q2 = $this->con->getLastExecutedQuery();
 
-        $this->assertEquals($q2, $q1, 'filterBy{RelationName}() only accepts arguments of type {RelationName} or PropelCollection');
+        $this->assertEquals($q2, $q1, 'Generated query handles filterByRefFk() methods correctly for composite fkeys');
         $this->assertEquals($releasePool, $testRelease);
+    }
+
+    /**
+     * @throws \Propel\Runtime\Exception\PropelException
+     * @expectedException \Propel\Runtime\Exception\PropelException
+     */
+    public function testFilterUsingCollectionByRelationNameCompositePk()
+    {
+        BookstoreDataPopulator::depopulate();
+        BookstoreDataPopulator::populate();
+
+        $testLabel = RecordLabelQuery::create()
+            ->limit(2)
+            ->find($this->con);
+
+        ReleasePoolQuery::create()
+            ->addJoin(ReleasePoolTableMap::COL_RECORD_LABEL_ID, RecordLabelTableMap::COL_ID)
+            ->filterByRecordLabel($testLabel)
+            ->find($this->con);
+
+        $this->fail('Expected PropelException : filterBy{RelationName}() only accepts arguments of type {RelationName}');
     }
 
     public function testFilterByRefFkCompositeKey()

@@ -212,7 +212,7 @@ class MysqlSchemaParser extends AbstractSchemaParser
             }
         } elseif (preg_match('/^(\w+)\(/', $row['Type'], $matches)) {
             $nativeType = $matches[1];
-            if ($nativeType === 'enum') {
+            if ($nativeType === 'enum' || $nativeType === 'set') {
                 $sqlType = $row['Type'];
             }
         } else {
@@ -251,7 +251,8 @@ class MysqlSchemaParser extends AbstractSchemaParser
                     $default = 'false';
                 }
             }
-            if (in_array($default, ['CURRENT_TIMESTAMP'])) {
+            if (in_array($default, ['CURRENT_TIMESTAMP', 'current_timestamp()'])) {
+                $default = 'CURRENT_TIMESTAMP';
                 $type = ColumnDefaultValue::TYPE_EXPR;
             } else {
                 $type = ColumnDefaultValue::TYPE_VALUE;

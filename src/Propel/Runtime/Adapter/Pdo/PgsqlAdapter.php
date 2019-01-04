@@ -10,6 +10,7 @@
 
 namespace Propel\Runtime\Adapter\Pdo;
 
+use PDOStatement;
 use Propel\Runtime\Adapter\AdapterInterface;
 use Propel\Runtime\Adapter\SqlAdapterInterface;
 use Propel\Runtime\Connection\ConnectionInterface;
@@ -106,7 +107,7 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
      */
     public function getTimestampFormatter()
     {
-        return 'Y-m-d H:i:s O';
+        return 'Y-m-d H:i:s.u O';
     }
 
     /**
@@ -116,7 +117,7 @@ class PgsqlAdapter extends PdoAdapter implements SqlAdapterInterface
      */
     public function getTimeFormatter()
     {
-        return 'H:i:s O';
+        return 'H:i:s.u O';
     }
 
     /**
